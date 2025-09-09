@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汉语声调学习 - Chinese Tones Learning</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .tone-visualization {
+            width: 100%;
+            height: 300px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            position: relative;
+            margin: 30px 0;
+            overflow: hidden;
+        }
+        
+        .tone-line {
+            position: absolute;
+            width: 80%;
+            height: 4px;
+            background: #e9ecef;
+            left: 10%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .tone-path {
+            position: absolute;
+            width: 80%;
+            height: 200px;
+            left: 10%;
+            top: 50px;
+        }
+        
+        .tone-dot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #ff6b6b;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .tone-dot:hover {
+            transform: translate(-50%, -50%) scale(1.2);
+            background: #ff5252;
+        }
+        
+        .tones-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .tone-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+        
+        .tone-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .tone-card.active {
+            border-color: #4ecdc4;
+        }
+        
+        .tone-1 { background: #ff9ff3; }
+        .tone-2 { background: #feca57; }
+        .tone-3 { background: #ff6b6b; }
+        .tone-4 { background: #48dbfb; }
+        
+        .tone-symbol {
+            font-size: 3em;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .character-display {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .chinese-char {
+            font-size: 4em;
+            margin: 0;
+            color: #2d3436;
+        }
+        
+        .pinyin {
+            font-size: 1.5em;
+            color: #636e72;
+            margin: 10px 0;
+        }
+        
+        .play-btn {
+            background: #00b894;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        
+        .play-btn:hover {
+            background: #00a382;
+            transform: scale(1.05);
+        }
+        
+        .tone-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .example-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .example-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #ff9ff3, #48dbfb);
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>汉语声调学习 🔊</h1>
+        <p>探索中文四个声调的美丽与韵律</p>
+        
+        <div class="tone-visualization">
+            <div class="tone-line"></div>
+            <svg class="tone-path" id="toneCanvas"></svg>
+        </div>
+        
+        <div class="tones-grid">
+            <div class="tone-card tone-1" data-tone="1">
+                <div class="tone-symbol">¯</div>
+                <h3>第一声</h3>
+                <p>高平调 (55)</p>
+            </div>
+            <div class="tone-card tone-2" data-tone="2">
+                <div class="tone-symbol">´</div>
+                <h3>第二声</h3>
+                <p>升调 (35)</p>
+            </div>
+            <div class="tone-card tone-3" data-tone="3">
+                <div class="tone-symbol">ˇ</div>
+                <h3>第三声</h3>
+                <p>降升调 (214)</p>
+            </div>
+            <div class="tone-card tone-4" data-tone="4">
+                <div class="tone-symbol">`</div>
+                <h3>第四声</h3>
+                <p>降调 (51)</p>
+            </div>
+        </div>
+        
+        <div class="character-display">
+            <h2 class="chinese-char" id="currentChar">妈</h2>
+            <div class="pinyin" id="currentPinyin">mā</div>
+            <button class="play-btn" onclick="playTone()">▶️ 播放发音</button>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress" id="lessonProgress" style="width: 25%"></div>
+        </div>
+        
+        <h3>常用例子:</h3>
+        <div class="tone-examples">
+            <div class="example-card" data-char="妈" data-pinyin="mā">妈 mā</div>
+            <div class="example-card" data-char="麻" data-pinyin="má">麻 má</div>
+            <div class="example-card" data-char="马" data-pinyin="mǎ">马 mǎ</div>
+            <div class="example-card" data-char="骂" data-pinyin="mà">骂 mà</div>
+            <div class="example-card" data-char="是" data-pinyin="shì">是 shì</div>
+            <div class="example-card" data-char="好" data-pinyin="hǎo">好 hǎo</div>
+        </div>
+    </div>
+
+    <script>
+        // Tone visualization using SVG
+        const svg = document.getElementById('toneCanvas');
+        const currentChar = document.getElementById('currentChar');
+        const currentPinyin = document.getElementById('currentPinyin');
+        
+        // Tone paths data
+        const tonePaths = {
+            1: { path: "M0,150 L400,150", color: "#ff9ff3" },
+            2: { path: "M0,50 L400,150", color: "#feca57" },
+            3: { path: "M0,150 C100,250 300,50 400,150", color: "#ff6b6b" },
+            4: { path: "M0,50 L400,150", color: "#48dbfb" }
+        };
+        
+        // Chinese characters examples
+        const toneExamples = {
+            1: [{char: "妈", pinyin: "mā"}, {char: "衣", pinyin: "yī"}],
+            2: [{char: "麻", pinyin: "má"}, {char: "移", pinyin: "yí"}],
+            3: [{char: "马", pinyin: "mǎ"}, {char: "椅", pinyin: "yǐ"}],
+            4: [{char: "骂", pinyin: "mà"}, {char: "意", pinyin: "yì"}]
+        };
+        
+        let currentTone = 1;
+        
+        // Draw initial tone path
+        drawTonePath(currentTone);
+        
+        function drawTonePath(toneNumber) {
+            svg.innerHTML = '';
+            const pathData = tonePaths[toneNumber];
+            
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", pathData.path);
+            path.setAttribute("stroke", pathData.color);
+            path.setAttribute("stroke-width", "8");
+            path.setAttribute("fill", "none");
+            path.setAttribute("stroke-linecap", "round");
+            svg.appendChild(path);
+            
+            // Add moving dot
+            const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            dot.setAttribute("cx", "0");
+            dot.setAttribute("cy", "150");
+            dot.setAttribute("r", "12");
+            dot.setAttribute("fill", pathData.color);
+            dot.setAttribute("class", "tone-dot");
+            svg.appendChild(dot);
+            
+            // Animate dot along path
+            animateDot(dot, pathData.path);
+        }
+        
+        function animateDot(dot, path) {
+            let position = 0;
+            const animate = () => {
+                position = (position + 0.5) % 100;
+                const point = getPointAtLength(path, position);
+                dot.setAttribute("cx", point.x);
+                dot.setAttribute("cy", point.y);
+                requestAnimationFrame(animate);
+            };
+            animate();
+        }
+        
+        function getPointAtLength(path, percentage) {
+            // Simplified path point calculation
+            const length = 400;
+            const x = (percentage / 100) * length;
+            let y;
+            
+            switch(currentTone) {
+                case 1: y = 150; break;
+                case 2: y = 50 + (x / 400) * 100; break;
+                case 3: 
+                    y = 150 + Math.sin((x / 400) * Math.PI) * 100;
+                    break;
+                case 4: y = 50 + (x / 400) * 100; break;
+            }
+            
+            return { x, y };
+        }
+        
+        // Tone card click handling
+        document.querySelectorAll('.tone-card').forEach(card => {
+            card.addEventListener('click', () => {
+                currentTone = parseInt(card.dataset.tone);
+                document.querySelectorAll('.tone-card').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                drawTonePath(currentTone);
+                updateCharacterExamples();
+            });
+        });
+        
+        // Example card click handling
+        document.querySelectorAll('.example-card').forEach(card => {
+            card.addEventListener('click', () => {
+                currentChar.textContent = card.dataset.char;
+                currentPinyin.textContent = card.dataset.pinyin;
+            });
+        });
+        
+        function updateCharacterExamples() {
+            const examples = toneExamples[currentTone];
+            if (examples && examples.length > 0) {
+                const randomExample = examples[Math.floor(Math.random() * examples.length)];
+                currentChar.textContent = randomExample.char;
+                currentPinyin.textContent = randomExample.pinyin;
+            }
+        }
+        
+        function playTone() {
+            // Simulate tone playback (in real implementation, use audio files)
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            
+            switch(currentTone) {
+                case 1: // High level tone
+                    oscillator.frequency.setValueAtTime(330, audioContext.currentTime);
+                    break;
+                case 2: // Rising tone
+                    oscillator.frequency.linearRampToValueAtTime(250, audioContext.currentTime);
+                    oscillator.frequency.linearRampToValueAtTime(330, audioContext.currentTime + 0.5);
+                    break;
+                case 3: // Falling-rising tone
+                    oscillator.frequency.setValueAtTime(250, audioContext.currentTime);
+                    oscillator.frequency.linearRampToValueAtTime(200, audioContext.currentTime + 0.25);
+                    oscillator.frequency.linearRampToValueAtTime(250, audioContext.currentTime + 0.5);
+                    break;
+                case 4: // Falling tone
+                    oscillator.frequency.setValueAtTime(330, audioContext.currentTime);
+                    oscillator.frequency.linearRampToValueAtTime(200, audioContext.currentTime + 0.5);
+                    break;
+            }
+            
+            oscillator.connect(audioContext.destination);
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.6);
+        }
+        
+        // Initialize
+        document.querySelector('.tone-card[data-tone="1"]').classList.add('active');
+        updateCharacterExamples();
+    </script>
+</body>
+</html>
